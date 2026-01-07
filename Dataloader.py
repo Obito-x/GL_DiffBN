@@ -9,14 +9,95 @@ import scipy.sparse as sp
 import argparse
 
 
+# def remove_common_features(features, n_remove=40):
+#     """Discard common features from both high and low ends"""
+#     print("Starting common feature discarding...")
+#
+#     n_samples, n_nodes, n_timepoints = features.shape
+#     node_feature_matrix = []
+#
+#     # Reorganize features by node
+#     for i in range(n_nodes):
+#         columns_data = []
+#         for sample_idx in range(n_samples):
+#             column = features[sample_idx, i, :]
+#             columns_data.append(column)
+#         new_matrix = np.vstack(columns_data).T
+#         node_feature_matrix.append(new_matrix)
+#
+#     # Perform SVD decomposition for each node
+#     left_singular_matrices = []
+#     for matrix in node_feature_matrix:
+#         matrix_tensor = torch.Tensor(matrix)
+#         u, s, v = torch.linalg.svd(matrix_tensor)
+#         u[u < 0] = 0
+#         left_singular_matrices.append(u)
+#
+#     # Extract feature weights
+#     columns = []
+#     for mat in left_singular_matrices:
+#         column = mat[:, 0]
+#         columns.append(column)
+#     feature_weight = np.vstack(columns).T
+#
+#     # Calculate row means and sort
+#     row_mean = np.mean(feature_weight, axis=1)
+#     sorted_indices = np.argsort(row_mean)
+#
+#     # Select feature indices to discard
+#     top_n_indices = sorted_indices[-n_remove:][::-1]  # Top n_remove indices
+#     bottom_n_indices = sorted_indices[:n_remove]  # Bottom n_remove indices
+#     delete_indices = np.concatenate((top_n_indices, bottom_n_indices))
+#
+#     print(f"Discarded feature indices: {delete_indices}")
+#     print(f"Number of features discarded: {len(delete_indices)}")
+#
+#     # Remove selected features from original data
+#     features_processed = np.delete(features, delete_indices, axis=2)
+#     print(f"Original feature shape: {features.shape}, Processed feature shape: {features_processed.shape}")
+#
+#     return features_processed, delete_indices
+#
+#
+# def retain_top_features(features, n_remove=40):
+#     """Control experiment: retain top-λ features, discard only bottom-λ"""
+#     print("Starting 【Retain top-λ】 control experiment...")
+#
+#     n_samples, n_nodes, n_timepoints = features.shape
+#     node_feature_matrix = []
+#     for i in range(n_nodes):
+#         cols = [features[sample_idx, i, :] for sample_idx in range(n_samples)]
+#         node_feature_matrix.append(np.vstack(cols).T)
+#
+#     left_singular_matrices = []
+#     for mat in node_feature_matrix:
+#         u, _, _ = torch.linalg.svd(torch.Tensor(mat))
+#         u[u < 0] = 0
+#         left_singular_matrices.append(u)
+#
+#     columns = [mat[:, 0] for mat in left_singular_matrices]
+#     feature_weight = np.vstack(columns).T
+#     row_mean = np.mean(feature_weight, axis=1)
+#     sorted_indices = np.argsort(row_mean)
+#
+#     # Key modification: discard only bottom-λ, retain top-λ
+#     delete_indices = sorted_indices[:n_remove]  # Only lowest commonality features
+#
+#     print(f"Discarded bottom-{n_remove} indices: {delete_indices}")
+#
+#     features_processed = np.delete(features, delete_indices, axis=2)
+#     print(f"Original shape: {features.shape}, Processed shape: {features_processed.shape}")
+#     return features_processed, delete_indices
+
+
 def remove_common_features(features, n_remove=40):
-    """Discard common features from both high and low ends"""
-    print("Starting common feature discarding...")
+    """Control experiment: retain bottom-λ features, discard only top-λ"""
+    print("Starting 【Retain bottom-λ】 control experiment...")
 
     n_samples, n_nodes, n_timepoints = features.shape
     node_feature_matrix = []
 
-    # Reorganize features by node
+    # Reorganize features by node (same as before)
     for i in range(n_nodes):
         columns_data = []
         for sample_idx in range(n_samples):
@@ -33,7 +114,7 @@ def remove_common_features(features, n_remove=40):
         u[u < 0] = 0
         left_singular_matrices.append(u)
 
-    # Extract feature weights
+    # Extract feature weights from first singular vector
     columns = []
     for mat in left_singular_matrices:
         column = mat[:, 0]
@@ -44,49 +125,16 @@ def remove_common_features(features, n_remove=40):
     row_mean = np.mean(feature_weight, axis=1)
     sorted_indices = np.argsort(row_mean)
 
-    # Select feature indices to discard
-    top_n_indices = sorted_indices[-n_remove:][::-1]  # Top n_remove indices
-    bottom_n_indices = sorted_indices[:n_remove]  # Bottom n_remove indices
-    delete_indices = np.concatenate((top_n_indices, bottom_n_indices))
+    # Key modification: discard only top-λ, retain bottom-λ
+    # Select the indices with highest mean values (top n_remove)
+    delete_indices = sorted_indices[-n_remove:][::-1]  # Top n_remove indices (descending order)
 
-    print(f"Discarded feature indices: {delete_indices}")
-    print(f"Number of features discarded: {len(delete_indices)}")
+    print(f"Discarded top-{n_remove} indices: {delete_indices}")
 
     # Remove selected features from original data
     features_processed = np.delete(features, delete_indices, axis=2)
-    print(f"Original feature shape: {features.shape}, Processed feature shape: {features_processed.shape}")
-
-    return features_processed, delete_indices
-
-
-def retain_top_features(features, n_remove=40):
-    """Control experiment: retain top-λ features, discard only bottom-λ"""
-    print("Starting 【Retain top-λ】 control experiment...")
-
-    n_samples, n_nodes, n_timepoints = features.shape
-    node_feature_matrix = []
-    for i in range(n_nodes):
-        cols = [features[sample_idx, i, :] for sample_idx in range(n_samples)]
-        node_feature_matrix.append(np.vstack(cols).T)
-
-    left_singular_matrices = []
-    for mat in node_feature_matrix:
-        u, _, _ = torch.linalg.svd(torch.Tensor(mat))
-        u[u < 0] = 0
-        left_singular_matrices.append(u)
-
-    columns = [mat[:, 0] for mat in left_singular_matrices]
-    feature_weight = np.vstack(columns).T
-    row_mean = np.mean(feature_weight, axis=1)
-    sorted_indices = np.argsort(row_mean)
-
-    # Key modification: discard only bottom-λ, retain top-λ
-    delete_indices = sorted_indices[:n_remove]  # Only lowest commonality features
-
-    print(f"Discarded bottom-{n_remove} indices: {delete_indices}")
-
-    features_processed = np.delete(features, delete_indices, axis=2)
     print(f"Original shape: {features.shape}, Processed shape: {features_processed.shape}")
+
     return features_processed, delete_indices
 
 def load_data(args, device):

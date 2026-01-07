@@ -21,18 +21,18 @@ def parameter_parser():
     parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
     parser.add_argument('--dropout', type=float, default=0.5, help='Dropout rate')
 
-    parser.add_argument("--n_repeated", type=int, default=2, help="Number of repeated times. Default is 10.")
+    parser.add_argument("--n_repeated", type=int, default=3, help="Number of repeated times. Default is 10.")
     parser.add_argument("--save_results", action='store_true', default=True, help="Save results")
     parser.add_argument("--save_all", action='store_true', default=True, help="Save all results")
     parser.add_argument("--save_loss", action='store_true', default=True, help="Save loss")
     parser.add_argument("--save_ACC", action='store_true', default=True, help="Save accuracy")
     parser.add_argument("--save_F1", action='store_true', default=True, help="Save F1 score")
 
-    parser.add_argument("--train_ratio", type=float, default=0.8, help="Ratio of train samples")
-    parser.add_argument("--val_ratio", type=float, default=0.1, help="Ratio of validate samples")
-    parser.add_argument("--num_epoch", type=int, default=1, help="Number of training epochs. Default is 200.")
+    parser.add_argument("--train_ratio", type=float, default=0.7, help="Ratio of train samples")
+    parser.add_argument("--val_ratio", type=float, default=0.2, help="Ratio of validate samples")
+    parser.add_argument("--num_epoch", type=int, default=100, help="Number of training epochs. Default is 200.")
 
-    parser.add_argument("--use_common_feature_removal", action='store_true', default=True,
+    parser.add_argument("--use_common_feature_removal", action='store_true', default=False,
                        help="Whether to use common feature removal")
     parser.add_argument("--n_remove_features", type=int, default=5,
                        help="Number of features to remove from top and bottom (total removed = n_remove_features * 2)")
