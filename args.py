@@ -13,7 +13,7 @@ def parameter_parser():
     parser.add_argument("--shuffle_seed", type=int, default=2, help="Random seed for train-test split. Default is 42.")
     parser.add_argument("--fix_seed", action='store_true', default=True, help="Fix random seed")
 
-    parser.add_argument('--hidden_channels', type=int, default=90, help="Number of hidden channels")
+    parser.add_argument('--hidden_channels', type=int, default=64, help="Number of hidden channels")
     parser.add_argument('--alpha', type=float, default=0.01, help='Weight for residual link')
     parser.add_argument('--layers', type=int, default=1, help='Number of layers')
 
